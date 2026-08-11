@@ -31,3 +31,34 @@ export async function log(
 
   if (error) throw error;
 }
+
+export type ClientActivity = {
+  id: string;
+  kind: ActivityKind;
+  entity_type: string;
+  entity_id: string;
+  payload: Json;
+  created_at: string;
+  actor: { id: string; full_name: string | null } | null;
+};
+
+/** Timeline de um cliente, mais recente primeiro (§7.5). */
+export async function listByClient(
+  supabase: Supabase,
+  orgId: string,
+  clientId: string,
+  limit = 30,
+): Promise<ClientActivity[]> {
+  const { data, error } = await supabase
+    .from("activities")
+    .select(
+      "id, kind, entity_type, entity_id, payload, created_at, actor:profiles!activities_actor_id_fkey(id, full_name)",
+    )
+    .eq("org_id", orgId)
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as ClientActivity[];
+}
