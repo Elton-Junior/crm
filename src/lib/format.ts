@@ -36,6 +36,15 @@ export function formatDocument(digits: string): string {
   return digits;
 }
 
+/** Formata CEP (8 dígitos) como 00000-000. */
+export function formatZipCode(digits: string): string {
+  const d = digits.replace(/\D/g, "");
+  if (d.length === 8) {
+    return d.replace(/(\d{5})(\d{3})/, "$1-$2");
+  }
+  return digits;
+}
+
 /** Formata telefone/celular (10 ou 11 dígitos, com DDD). */
 export function formatPhone(digits: string): string {
   const d = digits.replace(/\D/g, "");
