@@ -31,6 +31,7 @@ Estas premissas foram assumidas com base no briefing. **Se alguma estiver errada
 | P1 | Uso **interno** da empresa. Não há venda para clientes externos agora. | Baixo — o schema já nasce com `org_id`, então virar multi-tenant depois é barato. |
 | P2 | Volume pequeno: até ~20 usuários, ~5.000 clientes, ~10.000 propostas nos primeiros 2 anos. | Alto — acima disso, revisar índices e paginação (ver §12). |
 | P3 | Não há billing/assinatura. Ninguém paga pelo sistema. | Alto — Stripe fica fora do MVP. |
+| **P3.1** | **O escopo final é um workspace estilo Bitrix24** (CRM + Tarefas/Projetos + Drive + Automação + eventualmente Chat). Os 5 módulos deste documento são a **primeira fatia**, não o produto completo. Ver `ARQUITETURA-EXPANSAO.md`. | Define a ordem: termine o CRM base antes de qualquer módulo novo. |
 | P4 | Contratos são **arquivos** (PDF/DOCX) com metadados + campo de anotações livre. | Médio — se for editor de texto puro, troca Storage por Tiptap/JSONB. |
 | P5 | Login por **magic link** (e-mail), sem senha. Domínio de e-mail da empresa restrito. | Baixo — Supabase Auth suporta trocar o provider sem mexer no schema. |
 | P6 | Calendário é **interno** (sem sync bidirecional com Google Calendar) no MVP. | Médio — sync fica na Fase 4. |
@@ -43,7 +44,7 @@ Estas premissas foram assumidas com base no briefing. **Se alguma estiver errada
 
 | Camada | Escolha | Por quê |
 |---|---|---|
-| Framework | **Next.js 15** (App Router) + React 19 + TypeScript strict | Server Components reduzem JS no cliente; Server Actions eliminam a camada de API REST no MVP. |
+| Framework | **Next.js 16** (App Router) + React 19 + TypeScript strict | Server Components reduzem JS no cliente; Server Actions eliminam a camada de API REST no MVP. Ver §2.1 — o Next 16 tem breaking changes que contrariam o que a maioria dos modelos "sabe". |
 | Hospedagem | **Vercel** | Deploy por push, preview por PR, edge network. Free/Pro cobre esse volume folgado. |
 | Banco + Auth + Storage | **Supabase** | Postgres real (não abstração), RLS nativa, Auth e Storage no mesmo produto. Menos peças para manter. |
 | UI | **Tailwind CSS v4 + shadcn/ui** | shadcn gera componentes no seu repo (não é dependência opaca) → IA consegue editar. Radix por baixo = acessibilidade de graça. |
@@ -59,6 +60,23 @@ Estas premissas foram assumidas com base no briefing. **Se alguma estiver errada
 | Testes | **Vitest** (unit) + **Playwright** (e2e nos 3 fluxos críticos) | — |
 
 ### Dependências (package.json)
+
+### 2.1 Next 16 — deltas que quebram o "conhecimento padrão" do agente
+
+O `create-next-app@latest` instala **Next 16**. Ele tem mudanças que contrariam o que quase todo modelo de IA aprendeu sobre Next.js. Estas regras têm precedência sobre qualquer padrão que o agente "lembre":
+
+| Mudança | O que fazer |
+|---|---|
+| **`middleware.ts` → `proxy.ts`** | O arquivo é `src/proxy.ts` e a função exportada é `export async function proxy(request)`. `config.matcher` continua igual. Ver §7.2. |
+| **Proxy roda em Node.js runtime por padrão** (antes Edge) | Bom: acaba o atrito histórico do `@supabase/ssr`, que precisa de APIs do Node. Não force `runtime = 'edge'`. |
+| **Turbopack é o default em `next dev` e `next build`** | Se o build quebrar por algo específico de webpack, o escape é `next build --webpack`. |
+| **Defaults de `next/image` mudaram** | Revisar `qualities`, `localPatterns` e `remotePatterns` quando entrar imagem (avatares, logo da org). |
+| **Node ≥ 20.9 e TypeScript ≥ 5.1** | Confirmar `node -v` antes de qualquer coisa. |
+| **Cache Components / `"use cache"`** | Recurso novo. **Não usar no MVP** — `revalidatePath`/`revalidateTag` cobre tudo aqui. Não é hora de aprender API nova. |
+
+Se algo divergir entre este documento e o comportamento real do framework, o framework ganha — e o `AGENTS.md` do repo deve ser atualizado com a diferença encontrada.
+
+### 2.2 Instalação
 
 ```bash
 npx create-next-app@latest crm --typescript --tailwind --app --src-dir --import-alias "@/*"
@@ -765,7 +783,7 @@ crm/
 │   ├── types/
 │   │   └── database.ts              # GERADO: supabase gen types typescript
 │   │
-│   └── middleware.ts                # proteção de rota
+│   └── proxy.ts                     # proteção de rota (era middleware.ts no Next ≤15)
 └── tests/
     ├── unit/
     └── e2e/
@@ -875,7 +893,7 @@ Pública, estática, um arquivo. Não é página de marketing elaborada — é a
 - Usuário sem `membership` cai em `/sem-acesso` com mensagem para pedir convite ao admin.
 - Rate limit: máximo 3 magic links por e-mail a cada 15 min (o Supabase já limita; adicione feedback na UI).
 
-**Middleware** (`src/middleware.ts`):
+**Proxy** (`src/proxy.ts`) — ⚠️ **no Next 16 o arquivo `middleware.ts` foi renomeado para `proxy.ts` e a função exportada passou de `middleware` para `proxy`.** O `config.matcher` e as APIs de request/response são idênticos. Bônus: o proxy roda em **Node.js runtime por padrão** (antes era Edge), o que elimina o atrito histórico do `@supabase/ssr`, que depende de APIs do Node.
 
 ```ts
 import { type NextRequest, NextResponse } from 'next/server';
@@ -883,7 +901,7 @@ import { updateSession } from '@/lib/supabase/middleware';
 
 const PUBLIC = ['/', '/login', '/auth'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { response, user } = await updateSession(request);
   const path = request.nextUrl.pathname;
   const isPublic = PUBLIC.some((p) => path === p || path.startsWith(p + '/'));
@@ -1390,7 +1408,9 @@ Ordem importa. **Não pule fases.** Cada prompt deve caber em uma sessão e term
    Crie a estrutura de pastas exata da §5 (pastas vazias com .gitkeep).
 
 2. Configure o Supabase: clients browser/server/admin em src/lib/supabase/,
-   middleware de sessão e src/middleware.ts de proteção de rota (§7.2).
+   helper updateSession em src/lib/supabase/middleware.ts e
+   src/proxy.ts de proteção de rota (§7.2 — atenção: no Next 16 é proxy.ts,
+   NÃO middleware.ts, e a função exportada chama-se `proxy`).
 
 3. Rode as migrations 0001, 0002 e 0003 da §4. Depois gere src/types/database.ts.
 
@@ -1441,6 +1461,12 @@ Ordem importa. **Não pule fases.** Cada prompt deve caber em uma sessão e term
 21. Responsividade mobile: sidebar vira drawer, Kanban rola horizontal,
     tabelas viram cards.
 ```
+
+### Fases 5–9 — Expansão (workspace estilo Bitrix24)
+
+Especificadas em **`ARQUITETURA-EXPANSAO.md`**: primitivos compartilhados (files, comments, notifications), Tarefas e Projetos, Drive, Automação e Chat.
+
+⚠️ **Não comece nenhuma delas antes de terminar a Fase 4.** E antes de subir contrato real, leia a §3.1 do documento de expansão — a tabela `contracts` precisa ser refatorada para o primitivo `files`, e isso é barato agora e caro depois.
 
 ### Backlog (depois de estar em uso)
 

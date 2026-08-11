@@ -2,11 +2,29 @@
 
 Contexto permanente do projeto. Leia antes de qualquer alteração.
 A especificação completa está em `ARQUITETURA.md` — este arquivo é o resumo operacional.
+Os módulos da expansão (Tarefas, Drive, Chat, Automação) estão em `ARQUITETURA-EXPANSAO.md`.
 
 ## O que é
 
-CRM interno da empresa. Módulos: Dashboard, Clientes, Propostas (Kanban), Contratos, Agenda.
-Uso interno, ~20 usuários. Não há billing.
+Workspace interno da empresa, estilo Bitrix24. Uso interno, ~20 usuários. Não há billing.
+
+**Fatia atual (Fases 0–4):** Dashboard, Clientes, Propostas (Kanban), Contratos, Agenda.
+**Expansão (Fases 5–9):** primitivos compartilhados, Tarefas e Projetos, Drive, Automação, Chat.
+
+⚠️ **Não comece a expansão antes de terminar a Fase 4.** Se estiver na fatia atual e alguém pedir
+algo de Tarefas/Drive/Chat/Automação, aponte para o roadmap e pergunte antes.
+
+## Primitivos — nunca duplique
+
+Antes de criar algo novo, pergunte qual primitivo é. Se já existe, **reutilize**:
+
+| Primitivo | Onde vive | Regra |
+|---|---|---|
+| Board (Kanban) | `src/components/kanban/` | Um dnd-kit no projeto inteiro, genérico por adapter |
+| File | tabelas `files` + `file_links` | Nunca coluna de arquivo inline numa tabela de domínio |
+| Comment | `<CommentThread entityType entityId />` | Uma implementação de comentário só |
+| Notification | tabela `notifications` | Criada pelo motor de automação, nunca por Server Action solta |
+| Automation | `outbox_events` + worker | Efeito colateral vira evento na outbox, não chamada direta |
 
 ## Stack
 
