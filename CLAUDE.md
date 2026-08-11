@@ -3,8 +3,6 @@
 Contexto permanente do projeto. Leia antes de qualquer alteração.
 A especificação completa está em `ARQUITETURA.md` — este arquivo é o resumo operacional.
 
-Regras específicas desta versão do Next.js (breaking changes vs. dados de treino) estão em `AGENTS.md` — leia antes de escrever código que toque em rotas, config ou APIs do framework.
-
 ## O que é
 
 CRM interno da empresa. Módulos: Dashboard, Clientes, Propostas (Kanban), Contratos, Agenda.
@@ -12,9 +10,22 @@ Uso interno, ~20 usuários. Não há billing.
 
 ## Stack
 
-Next.js 15 (App Router, RSC) · TypeScript strict · Tailwind v4 + shadcn/ui ·
+Next.js 16 (App Router, RSC) · TypeScript strict · Tailwind v4 + shadcn/ui ·
 Supabase (Postgres + Auth + Storage + RLS) · Vercel ·
 TanStack Query v5 · react-hook-form + Zod · @dnd-kit · FullCalendar · Recharts · date-fns
+
+## Next 16 — o que você provavelmente "lembra" errado
+
+Estas regras têm precedência sobre qualquer padrão de Next.js que você tenha aprendido:
+
+- **Não existe `middleware.ts`.** É `src/proxy.ts`, e a função exportada é `export async function proxy(request: NextRequest)`. `config.matcher` continua igual.
+- O proxy roda em **Node.js runtime por padrão**. Não force `runtime = 'edge'` — o `@supabase/ssr` precisa de APIs do Node.
+- **Turbopack é o default** em `next dev` e `next build`. Escape: `next build --webpack`.
+- Defaults de `next/image` mudaram (`qualities`, `localPatterns`, `remotePatterns`).
+- **Não use `"use cache"` / Cache Components.** `revalidatePath` e `revalidateTag` cobrem tudo neste projeto.
+- Node ≥ 20.9, TypeScript ≥ 5.1.
+
+Se descobrir outra divergência entre o framework real e o que está escrito aqui, **atualize esta seção** antes de seguir.
 
 ## Regras inegociáveis
 
