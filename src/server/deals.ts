@@ -390,3 +390,28 @@ export async function update(
   if (!data) return { ok: false as const, error: "Proposta não encontrada." };
   return { ok: true as const };
 }
+
+/** Busca leve para o combobox "Proposta vinculada" do cadastro de contrato (§7.7). */
+export async function searchByClient(
+  supabase: Supabase,
+  orgId: string,
+  clientId: string,
+  query: string,
+  limit = 10,
+) {
+  let request = supabase
+    .from("deals")
+    .select("id, title")
+    .eq("org_id", orgId)
+    .eq("client_id", clientId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  const term = query.trim();
+  if (term) request = request.ilike("title", `%${term}%`);
+
+  const { data, error } = await request;
+  if (error) throw error;
+  return data ?? [];
+}

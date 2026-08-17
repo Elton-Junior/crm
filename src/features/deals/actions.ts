@@ -168,6 +168,12 @@ export async function searchClients(query: string) {
   return { ok: true as const, data: results };
 }
 
+export async function searchDealsByClient(clientId: string, query: string) {
+  const { supabase, orgId } = await requireOrg();
+  const results = await dealsService.searchByClient(supabase, orgId, clientId, query);
+  return { ok: true as const, data: results };
+}
+
 export async function deleteStage(stageId: string) {
   const { supabase, orgId } = await requireOrg();
   const result = await dealsService.deleteStage(supabase, { orgId, stageId });

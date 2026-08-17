@@ -45,6 +45,13 @@ export function formatZipCode(digits: string): string {
   return digits;
 }
 
+/** Formata bytes como KB/MB legível. */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 /** Formata telefone/celular (10 ou 11 dígitos, com DDD). */
 export function formatPhone(digits: string): string {
   const d = digits.replace(/\D/g, "");
