@@ -25,6 +25,7 @@ import { useBoard, useMoveDeal, useMoveStage } from "../hooks";
 import { positionForIndex } from "../ordering";
 import type { KanbanFiltersState } from "./KanbanFilters";
 import { DealCard } from "./DealCard";
+import { DealDetailDialog } from "./DealDetailDialog";
 import { KanbanColumn } from "./KanbanColumn";
 import { LostReasonDialog } from "./LostReasonDialog";
 
@@ -34,6 +35,8 @@ type PendingLostMove = {
   toStageId: string;
   position: string;
 };
+
+type Member = { id: string; full_name: string | null };
 
 function matchesFilters(deal: BoardDeal, filters: KanbanFiltersState): boolean {
   if (filters.ownerId && deal.owner?.id !== filters.ownerId) return false;
@@ -56,9 +59,11 @@ function matchesFilters(deal: BoardDeal, filters: KanbanFiltersState): boolean {
 export function KanbanBoard({
   pipelineId,
   filters,
+  members,
 }: {
   pipelineId: string;
   filters: KanbanFiltersState;
+  members: Member[];
 }) {
   const { data: board, isLoading } = useBoard(pipelineId);
   const moveDeal = useMoveDeal(pipelineId);
@@ -67,6 +72,7 @@ export function KanbanBoard({
   const [activeDeal, setActiveDeal] = useState<BoardDeal | null>(null);
   const [activeStageId, setActiveStageId] = useState<string | null>(null);
   const [pendingLostMove, setPendingLostMove] = useState<PendingLostMove | null>(null);
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
 
   const sensors = useSensors(
     // distância de 8px evita que um clique simples vire drag (§7.6, regra 1).
@@ -190,6 +196,7 @@ export function KanbanBoard({
                 pipelineId={pipelineId}
                 stage={stage}
                 deals={visibleDealsByStage[stage.id] ?? []}
+                onCardClick={setSelectedDealId}
               />
             ))}
           </div>
@@ -221,6 +228,16 @@ export function KanbanBoard({
             { ...pendingLostMove, lostReason: reason },
             { onSuccess: () => setPendingLostMove(null) },
           );
+        }}
+      />
+
+      <DealDetailDialog
+        dealId={selectedDealId}
+        pipelineId={pipelineId}
+        stages={board.stages}
+        members={members}
+        onOpenChange={(open) => {
+          if (!open) setSelectedDealId(null);
         }}
       />
     </>

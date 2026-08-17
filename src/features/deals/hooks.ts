@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { firstErrorMessage } from "@/lib/action-errors";
 import type { Board } from "@/server/deals";
 
 import {
@@ -14,18 +15,8 @@ import {
   updateStage,
 } from "./actions";
 
-function boardKey(pipelineId: string) {
+export function boardKey(pipelineId: string) {
   return ["board", pipelineId] as const;
-}
-
-type ActionErrors = Record<string, string[] | undefined> | { _form: string[] };
-
-function firstErrorMessage(errors: ActionErrors, fallback: string): string {
-  if ("_form" in errors) return errors._form?.[0] ?? fallback;
-  for (const value of Object.values(errors)) {
-    if (value && value.length > 0) return value[0];
-  }
-  return fallback;
 }
 
 export function useBoard(pipelineId: string) {

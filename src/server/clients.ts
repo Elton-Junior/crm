@@ -99,6 +99,29 @@ export async function listMembers(supabase: Supabase, orgId: string) {
     .filter((p): p is { id: string; full_name: string | null } => p !== null);
 }
 
+/** Busca leve para comboboxes (ex.: vincular cliente a uma proposta). */
+export async function search(
+  supabase: Supabase,
+  orgId: string,
+  query: string,
+  limit = 10,
+) {
+  const term = sanitizeOrTerm(query);
+  if (!term) return [];
+
+  const { data, error } = await supabase
+    .from("clients")
+    .select("id, name")
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .ilike("name", `%${term}%`)
+    .order("name", { ascending: true })
+    .limit(limit);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 export type ClientInput = {
   kind: Database["public"]["Enums"]["client_kind"];
   name: string;

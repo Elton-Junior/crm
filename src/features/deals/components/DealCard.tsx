@@ -18,7 +18,13 @@ function initials(name: string | null | undefined): string {
     .join("");
 }
 
-export function DealCard({ deal }: { deal: BoardDeal }) {
+export function DealCard({
+  deal,
+  onClick,
+}: {
+  deal: BoardDeal;
+  onClick?: () => void;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({
       id: deal.id,
@@ -35,6 +41,7 @@ export function DealCard({ deal }: { deal: BoardDeal }) {
       ref={setNodeRef}
       {...attributes}
       {...listeners}
+      onClick={onClick}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         "cursor-grab space-y-2 rounded-md border bg-card p-3 shadow-xs active:cursor-grabbing",

@@ -301,3 +301,92 @@ export async function deleteStage(
   }
   return { ok: true as const };
 }
+
+export type DealInput = {
+  title: string;
+  clientId: string;
+  valueCents: number;
+  probability: number | null;
+  ownerId: string;
+  expectedClose: string;
+  description: string;
+  tags: string[];
+};
+
+export type DealDetail = DealInput & {
+  id: string;
+  stageId: string;
+  status: Database["public"]["Enums"]["deal_status"];
+  clientName: string | null;
+};
+
+/** Deal completo para o dialog de detalhe (§7.6, aba "Detalhes"). */
+export async function getById(
+  supabase: Supabase,
+  orgId: string,
+  dealId: string,
+): Promise<DealDetail | null> {
+  const { data, error } = await supabase
+    .from("deals")
+    .select(
+      "id, title, client_id, value_cents, probability, owner_id, expected_close, description, tags, stage_id, status, client:clients!deals_client_id_fkey(name)",
+    )
+    .eq("id", dealId)
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const client = data.client as unknown as { name: string } | null;
+
+  return {
+    id: data.id,
+    title: data.title,
+    clientId: data.client_id ?? "",
+    clientName: client?.name ?? null,
+    valueCents: data.value_cents,
+    probability: data.probability,
+    ownerId: data.owner_id ?? "",
+    expectedClose: data.expected_close ?? "",
+    description: data.description ?? "",
+    tags: data.tags ?? [],
+    stageId: data.stage_id,
+    status: data.status,
+  };
+}
+
+/**
+ * Atualiza os campos "de conteúdo" do deal (não mexe em stage/status —
+ * isso é papel de move(), acionado pelo drag ou pelos botões
+ * ganhar/perder). Sem log de activity: não há um `deal_updated` no enum
+ * `activity_kind` (só create/moved/won/lost), e inventar um valor novo
+ * exigiria alterar a migration — fora do escopo deste item.
+ */
+export async function update(
+  supabase: Supabase,
+  params: { orgId: string; dealId: string; input: DealInput },
+) {
+  const { data, error } = await supabase
+    .from("deals")
+    .update({
+      title: params.input.title,
+      client_id: params.input.clientId || null,
+      value_cents: params.input.valueCents,
+      probability: params.input.probability,
+      owner_id: params.input.ownerId || null,
+      expected_close: params.input.expectedClose || null,
+      description: params.input.description || null,
+      tags: params.input.tags,
+    })
+    .eq("id", params.dealId)
+    .eq("org_id", params.orgId)
+    .is("deleted_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { ok: false as const, error: error.message };
+  if (!data) return { ok: false as const, error: "Proposta não encontrada." };
+  return { ok: true as const };
+}

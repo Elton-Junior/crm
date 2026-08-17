@@ -31,3 +31,46 @@ export const updateStageSchema = z.object({
 
 export type QuickCreateDealInput = z.infer<typeof quickCreateDealSchema>;
 export type UpdateStageInput = z.infer<typeof updateStageSchema>;
+
+/**
+ * Schema do dialog de detalhe do deal (§7.6). Sem `.default()` de
+ * propósito — mesmo motivo do clientFormSchema: manter o tipo de entrada
+ * igual ao de saída para `useForm<DealFormInput>({ resolver: zodResolver(...) })`.
+ */
+export const dealFormSchema = z.object({
+  title: z.string().trim().min(1, "Informe um título.").max(200),
+  clientId: z
+    .string()
+    .refine((v) => v === "" || z.string().uuid().safeParse(v).success, {
+      message: "Cliente inválido.",
+    }),
+  // Reais, não centavos — convertido para centavos na Server Action.
+  value: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || !Number.isNaN(Number(v.replace(",", "."))), {
+      message: "Valor inválido.",
+    }),
+  probability: z.number().int().min(0).max(100).nullable(),
+  ownerId: z
+    .string()
+    .refine((v) => v === "" || z.string().uuid().safeParse(v).success, {
+      message: "Responsável inválido.",
+    }),
+  expectedClose: z.string(),
+  description: z.string().trim().max(2000),
+  tags: z.array(z.string().trim().min(1)),
+});
+
+export type DealFormInput = z.infer<typeof dealFormSchema>;
+
+export const DEAL_FORM_DEFAULTS: DealFormInput = {
+  title: "",
+  clientId: "",
+  value: "",
+  probability: null,
+  ownerId: "",
+  expectedClose: "",
+  description: "",
+  tags: [],
+};

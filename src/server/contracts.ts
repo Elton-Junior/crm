@@ -35,3 +35,21 @@ export async function listByClient(
   if (error) throw error;
   return data ?? [];
 }
+
+/** Contratos vinculados a uma proposta (aba "Contratos vinculados" do dialog de detalhe do deal, §7.6). */
+export async function listByDeal(
+  supabase: Supabase,
+  orgId: string,
+  dealId: string,
+): Promise<ClientContract[]> {
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("id, title, status, value_cents, end_date, created_at")
+    .eq("org_id", orgId)
+    .eq("deal_id", dealId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}

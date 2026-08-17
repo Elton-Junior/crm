@@ -20,10 +20,12 @@ export function KanbanColumn({
   pipelineId,
   stage,
   deals,
+  onCardClick,
 }: {
   pipelineId: string;
   stage: PipelineStage;
   deals: BoardDeal[];
+  onCardClick: (dealId: string) => void;
 }) {
   const {
     attributes,
@@ -80,7 +82,11 @@ export function KanbanColumn({
           strategy={verticalListSortingStrategy}
         >
           {deals.map((deal) => (
-            <DealCard key={deal.id} deal={deal} />
+            <DealCard
+              key={deal.id}
+              deal={deal}
+              onClick={() => onCardClick(deal.id)}
+            />
           ))}
         </SortableContext>
       </div>

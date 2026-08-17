@@ -62,3 +62,26 @@ export async function listByClient(
   if (error) throw error;
   return (data ?? []) as unknown as ClientActivity[];
 }
+
+/** Timeline de qualquer entidade (ex.: aba "Atividades" do dialog de detalhe do deal). */
+export async function listByEntity(
+  supabase: Supabase,
+  orgId: string,
+  entityType: string,
+  entityId: string,
+  limit = 30,
+): Promise<ClientActivity[]> {
+  const { data, error } = await supabase
+    .from("activities")
+    .select(
+      "id, kind, entity_type, entity_id, payload, created_at, actor:profiles!activities_actor_id_fkey(id, full_name)",
+    )
+    .eq("org_id", orgId)
+    .eq("entity_type", entityType)
+    .eq("entity_id", entityId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as ClientActivity[];
+}

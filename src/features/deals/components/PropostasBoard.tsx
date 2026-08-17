@@ -19,7 +19,7 @@ export function PropostasBoard({
   return (
     <div className="space-y-4">
       <KanbanFilters members={members} value={filters} onChange={setFilters} />
-      <KanbanBoard pipelineId={pipelineId} filters={filters} />
+      <KanbanBoard pipelineId={pipelineId} filters={filters} members={members} />
     </div>
   );
 }
