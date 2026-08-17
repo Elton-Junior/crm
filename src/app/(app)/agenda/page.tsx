@@ -1,16 +1,15 @@
-import { CalendarDaysIcon } from "lucide-react";
+import { AgendaPageClient } from "@/features/events/components/AgendaPageClient";
+import { requireOrg } from "@/lib/auth";
+import * as clientsService from "@/server/clients";
 
-import { EmptyState } from "@/components/layout/EmptyState";
+export default async function AgendaPage() {
+  const { supabase, orgId, user } = await requireOrg();
+  const members = await clientsService.listMembers(supabase, orgId);
 
-export default function AgendaPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Agenda</h1>
-      <EmptyState
-        icon={CalendarDaysIcon}
-        title="Em construção"
-        description="Calendário com FullCalendar chega na Fase 3."
-      />
+      <AgendaPageClient members={members} currentUserId={user.id} />
     </div>
   );
 }
