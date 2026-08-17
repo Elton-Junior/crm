@@ -1,10 +1,16 @@
+import { LayoutDashboardIcon } from "lucide-react";
+
+import { EmptyState } from "@/components/layout/EmptyState";
+
 export default function DashboardPage() {
   return (
-    <div>
+    <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Dashboard</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        KPIs, funil e listas acionáveis chegam na Fase 2.
-      </p>
+      <EmptyState
+        icon={LayoutDashboardIcon}
+        title="Em construção"
+        description="KPIs, funil de propostas e listas acionáveis chegam na Fase 3."
+      />
     </div>
   );
 }

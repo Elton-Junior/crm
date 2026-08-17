@@ -1,10 +1,16 @@
+import { CalendarDaysIcon } from "lucide-react";
+
+import { EmptyState } from "@/components/layout/EmptyState";
+
 export default function AgendaPage() {
   return (
-    <div>
+    <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Agenda</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Calendário com FullCalendar chega na Fase 3.
-      </p>
+      <EmptyState
+        icon={CalendarDaysIcon}
+        title="Em construção"
+        description="Calendário com FullCalendar chega na Fase 3."
+      />
     </div>
   );
 }

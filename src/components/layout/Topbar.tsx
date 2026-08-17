@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Search } from "lucide-react";
 
+import { Logo } from "@/components/layout/Logo";
 import { SidebarNav } from "@/components/layout/Sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -40,8 +41,8 @@ export function Topbar({ userEmail }: { userEmail: string }) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-60 p-0">
-          <div className="flex h-14 items-center border-b px-4 text-sm font-semibold">
-            CRM
+          <div className="flex h-14 items-center border-b px-4">
+            <Logo />
           </div>
           <SidebarNav />
         </SheetContent>
