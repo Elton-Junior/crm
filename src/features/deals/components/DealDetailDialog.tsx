@@ -139,6 +139,7 @@ export function DealDetailDialog({
         return;
       }
       toast.success("Proposta atualizada.");
+      qc.invalidateQueries({ queryKey: boardKey(pipelineId) });
       onOpenChange(false);
     });
   }
