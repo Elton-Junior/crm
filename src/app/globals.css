@@ -128,3 +128,33 @@
     @apply font-sans;
   }
 }
+
+/* Blobs animados e mockups flutuantes da tela de login (§7.2). Pausados
+   quando o usuário prefere menos movimento. */
+@keyframes blob-float-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(4%, 6%) scale(1.08); }
+  66% { transform: translate(-3%, 3%) scale(0.96); }
+}
+
+@keyframes blob-float-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-6%, -4%) scale(1.1); }
+}
+
+@keyframes card-float {
+  0%, 100% { transform: translateY(0) rotate(var(--card-rotate, 0deg)); }
+  50% { transform: translateY(-10px) rotate(var(--card-rotate, 0deg)); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-blob-a {
+    animation: blob-float-a 16s ease-in-out infinite;
+  }
+  .animate-blob-b {
+    animation: blob-float-b 20s ease-in-out infinite;
+  }
+  .animate-card-float {
+    animation: card-float 6s ease-in-out infinite;
+  }
+}
