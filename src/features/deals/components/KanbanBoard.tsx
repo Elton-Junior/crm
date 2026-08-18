@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   DndContext,
   DragOverlay,
@@ -68,11 +69,18 @@ export function KanbanBoard({
   const { data: board, isLoading } = useBoard(pipelineId);
   const moveDeal = useMoveDeal(pipelineId);
   const moveStage = useMoveStage(pipelineId);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [activeDeal, setActiveDeal] = useState<BoardDeal | null>(null);
   const [activeStageId, setActiveStageId] = useState<string | null>(null);
   const [pendingLostMove, setPendingLostMove] = useState<PendingLostMove | null>(null);
-  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+  // Inicializado a partir de ?deal= (deep link da busca global, item 18) —
+  // lazy initializer em vez de efeito, só roda uma vez na montagem.
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(() =>
+    searchParams.get("deal"),
+  );
 
   const sensors = useSensors(
     // distância de 8px evita que um clique simples vire drag (§7.6, regra 1).
@@ -237,7 +245,10 @@ export function KanbanBoard({
         stages={board.stages}
         members={members}
         onOpenChange={(open) => {
-          if (!open) setSelectedDealId(null);
+          if (!open) {
+            setSelectedDealId(null);
+            if (searchParams.has("deal")) router.replace(pathname);
+          }
         }}
       />
     </>

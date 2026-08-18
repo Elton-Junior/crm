@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import { Logo } from "@/components/layout/Logo";
 import { SidebarNav } from "@/components/layout/Sidebar";
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { GlobalSearch } from "@/features/search/components/GlobalSearch";
 
 const LABELS: Record<string, string> = {
   dashboard: "Dashboard",
@@ -51,18 +52,7 @@ export function Topbar({ userEmail }: { userEmail: string }) {
       <p className="text-sm font-medium">{current}</p>
 
       <div className="ml-auto flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled
-          className="hidden gap-2 text-muted-foreground sm:flex"
-        >
-          <Search className="size-3.5" />
-          Buscar
-          <kbd className="ml-2 rounded border bg-muted px-1.5 text-[10px]">
-            ⌘K
-          </kbd>
-        </Button>
+        <GlobalSearch />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
