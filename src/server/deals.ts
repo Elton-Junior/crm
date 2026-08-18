@@ -255,6 +255,50 @@ export async function createQuick(
   return { ok: true as const, data };
 }
 
+/** Colunas do pipeline para o editor em Configurações (§7.9). */
+export async function listStages(
+  supabase: Supabase,
+  orgId: string,
+  pipelineId: string,
+): Promise<PipelineStage[]> {
+  const { data, error } = await supabase
+    .from("pipeline_stages")
+    .select("id, name, color, position, is_won, is_lost, wip_limit")
+    .eq("org_id", orgId)
+    .eq("pipeline_id", pipelineId)
+    .order("position", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Nova coluna do Kanban — fica em Configurações (§7.9), não no board (item 11). */
+export async function createStage(
+  supabase: Supabase,
+  params: {
+    orgId: string;
+    pipelineId: string;
+    name: string;
+    color: string;
+    position: string;
+  },
+) {
+  const { data, error } = await supabase
+    .from("pipeline_stages")
+    .insert({
+      org_id: params.orgId,
+      pipeline_id: params.pipelineId,
+      name: params.name,
+      color: params.color,
+      position: params.position,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const, data };
+}
+
 export async function updateStage(
   supabase: Supabase,
   params: {
@@ -263,12 +307,16 @@ export async function updateStage(
     name?: string;
     color?: string;
     wipLimit?: number | null;
+    isWon?: boolean;
+    isLost?: boolean;
   },
 ) {
   const update: Database["public"]["Tables"]["pipeline_stages"]["Update"] = {};
   if (params.name !== undefined) update.name = params.name;
   if (params.color !== undefined) update.color = params.color;
   if (params.wipLimit !== undefined) update.wip_limit = params.wipLimit;
+  if (params.isWon !== undefined) update.is_won = params.isWon;
+  if (params.isLost !== undefined) update.is_lost = params.isLost;
 
   const { error } = await supabase
     .from("pipeline_stages")
