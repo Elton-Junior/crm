@@ -74,7 +74,51 @@ export function ClientsTable({
   members: Member[];
 }) {
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <>
+      <div className="space-y-3 sm:hidden">
+        {clients.map((client) => (
+          <div key={client.id} className="rounded-lg border p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <Link
+                  href={`/clientes/${client.id}`}
+                  className="font-medium hover:underline"
+                >
+                  {client.name}
+                </Link>
+                {client.trade_name ? (
+                  <p className="text-xs text-muted-foreground">{client.trade_name}</p>
+                ) : null}
+              </div>
+              <ClientRowActions
+                clientId={client.id}
+                clientName={client.name}
+                members={members}
+              />
+            </div>
+
+            <div className="mt-2 flex flex-col gap-0.5 text-sm text-muted-foreground">
+              {client.document ? <span>{formatDocument(client.document)}</span> : null}
+              {client.email ? <span>{client.email}</span> : null}
+              {client.phone ? <span>{formatPhone(client.phone)}</span> : null}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between">
+              <Badge
+                variant="outline"
+                className={cn("border-transparent", STATUS_STYLES[client.status])}
+              >
+                {CLIENT_STATUS_LABELS[client.status]}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {formatDate(client.created_at)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-md border sm:block">
       <Table>
         <TableHeader>
           <TableRow>
@@ -150,6 +194,7 @@ export function ClientsTable({
           ))}
         </TableBody>
       </Table>
-    </div>
+      </div>
+    </>
   );
 }

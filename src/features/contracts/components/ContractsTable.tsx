@@ -90,7 +90,49 @@ export function ContractsTable({
   params: ContractListParams;
 }) {
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <>
+      <div className="space-y-3 sm:hidden">
+        {contracts.map((contract) => (
+          <div key={contract.id} className="rounded-lg border p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <Link href={`/contratos/${contract.id}`} className="font-medium hover:underline">
+                  {contract.title}
+                </Link>
+                {contract.contract_no ? (
+                  <p className="text-xs text-muted-foreground">Nº {contract.contract_no}</p>
+                ) : null}
+                {contract.client?.name ? (
+                  <p className="text-xs text-muted-foreground">{contract.client.name}</p>
+                ) : null}
+              </div>
+              <ContractRowActions
+                contractId={contract.id}
+                contractTitle={contract.title}
+              />
+            </div>
+
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <Badge
+                variant="outline"
+                className={cn("border-transparent", STATUS_STYLES[contract.status])}
+              >
+                {CONTRACT_STATUS_LABELS[contract.status]}
+              </Badge>
+              {expiryBadge(contract.end_date, contract.status)}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className="font-medium">{formatCurrency(contract.value_cents)}</span>
+              <span className="text-xs text-muted-foreground">
+                {contract.end_date ? formatDate(contract.end_date) : "—"}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-md border sm:block">
       <Table>
         <TableHeader>
           <TableRow>
@@ -147,6 +189,7 @@ export function ContractsTable({
           ))}
         </TableBody>
       </Table>
-    </div>
+      </div>
+    </>
   );
 }
