@@ -38,13 +38,20 @@ function payloadAction(payload: unknown): string | null {
   return null;
 }
 
-export function ClientTimelineTab({ activities }: { activities: ClientActivity[] }) {
+export function ClientTimelineTab({
+  activities,
+  emptyDescription = "Alterações relevantes neste cliente aparecem aqui.",
+}: {
+  activities: ClientActivity[];
+  /** A mesma lista é reaproveitada pelo feed geral do Dashboard (item 16), onde a atividade não é de um cliente só. */
+  emptyDescription?: string;
+}) {
   if (activities.length === 0) {
     return (
       <EmptyState
         icon={HistoryIcon}
         title="Sem atividades registradas"
-        description="Alterações relevantes neste cliente aparecem aqui."
+        description={emptyDescription}
       />
     );
   }

@@ -786,6 +786,10 @@ export type Database = {
     }
     Functions: {
       can_write: { Args: { p_org: string }; Returns: boolean }
+      dashboard_summary: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: Json
+      }
       is_member: { Args: { p_org: string }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }

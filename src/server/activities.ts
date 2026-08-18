@@ -85,3 +85,22 @@ export async function listByEntity(
   if (error) throw error;
   return (data ?? []) as unknown as ClientActivity[];
 }
+
+/** Feed de atividade recente da org inteira (Dashboard, item 16). */
+export async function listRecent(
+  supabase: Supabase,
+  orgId: string,
+  limit = 15,
+): Promise<ClientActivity[]> {
+  const { data, error } = await supabase
+    .from("activities")
+    .select(
+      "id, kind, entity_type, entity_id, payload, created_at, actor:profiles!activities_actor_id_fkey(id, full_name)",
+    )
+    .eq("org_id", orgId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as ClientActivity[];
+}
