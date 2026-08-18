@@ -45,12 +45,7 @@ export function FileUploadDropzone({
     setIsUploading(true);
     setProgressLabel("Preparando envio...");
 
-    const urlResult = await createContractUploadUrl(
-      contractId,
-      file.name,
-      file.type,
-      file.size,
-    );
+    const urlResult = await createContractUploadUrl(file.name, file.type, file.size);
     if (!urlResult.ok) {
       setIsUploading(false);
       setProgressLabel(null);
@@ -61,7 +56,7 @@ export function FileUploadDropzone({
     setProgressLabel("Enviando...");
     const supabase = createClient();
     const { error: uploadErr } = await supabase.storage
-      .from("contracts")
+      .from("files")
       .uploadToSignedUrl(urlResult.data.path, urlResult.data.token, file);
 
     if (uploadErr) {
@@ -74,6 +69,7 @@ export function FileUploadDropzone({
     setProgressLabel("Confirmando...");
     const confirmResult = await confirmContractUpload(
       contractId,
+      urlResult.data.fileId,
       urlResult.data.path,
       file.name,
       file.size,

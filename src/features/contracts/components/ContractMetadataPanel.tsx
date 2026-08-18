@@ -129,12 +129,12 @@ export function ContractMetadataPanel({ contract }: { contract: ContractDetail }
           <CardTitle>Arquivo</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {contract.fileName && !showReplaceFile ? (
+          {contract.file && !showReplaceFile ? (
             <div className="flex items-center justify-between text-sm">
               <div className="min-w-0">
-                <p className="truncate font-medium">{contract.fileName}</p>
+                <p className="truncate font-medium">{contract.file.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {contract.fileSize ? formatFileSize(contract.fileSize) : ""}
+                  {formatFileSize(contract.file.size)}
                 </p>
               </div>
               <Button size="sm" variant="outline" onClick={() => setShowReplaceFile(true)}>

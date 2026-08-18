@@ -5,12 +5,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 
 import * as activitiesService from "./activities";
+import * as filesService from "./files";
 
 type Supabase = SupabaseClient<Database>;
 type ContractStatus = Database["public"]["Enums"]["contract_status"];
 
 export const PAGE_SIZE = 25;
-const BUCKET = "contracts";
 
 export type ClientContract = {
   id: string;
@@ -128,10 +128,7 @@ export type ContractDetail = ContractInput & {
   id: string;
   clientName: string | null;
   dealTitle: string | null;
-  filePath: string | null;
-  fileName: string | null;
-  fileSize: number | null;
-  fileMime: string | null;
+  file: filesService.FileMeta | null;
 };
 
 function emptyToNull(value: string): string | null {
@@ -146,7 +143,7 @@ export async function getById(
   const { data, error } = await supabase
     .from("contracts")
     .select(
-      "id, title, contract_no, client_id, deal_id, status, value_cents, start_date, end_date, signed_at, renewal_notice_days, notes, tags, file_path, file_name, file_size, file_mime, client:clients!contracts_client_id_fkey(name), deal:deals!contracts_deal_id_fkey(title)",
+      "id, title, contract_no, client_id, deal_id, status, value_cents, start_date, end_date, signed_at, renewal_notice_days, notes, tags, file:files!contracts_file_id_fkey(id, name, size, mime), client:clients!contracts_client_id_fkey(name), deal:deals!contracts_deal_id_fkey(title)",
     )
     .eq("id", id)
     .eq("org_id", orgId)
@@ -158,6 +155,7 @@ export async function getById(
 
   const client = data.client as unknown as { name: string } | null;
   const deal = data.deal as unknown as { title: string } | null;
+  const file = data.file as unknown as filesService.FileMeta | null;
 
   return {
     id: data.id,
@@ -175,10 +173,7 @@ export async function getById(
     renewalNoticeDays: data.renewal_notice_days,
     notes: data.notes ?? "",
     tags: data.tags ?? [],
-    filePath: data.file_path,
-    fileName: data.file_name,
-    fileSize: data.file_size,
-    fileMime: data.file_mime,
+    file,
   };
 }
 
@@ -313,29 +308,11 @@ export async function duplicate(
   return { ok: true as const, data };
 }
 
-function slugify(value: string): string {
-  return value
-    .normalize("NFD")
-    // remove diacríticos combinantes (ex.: "é" -> "e") após normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/[^a-zA-Z0-9.]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .toLowerCase();
-}
-
 export async function createUploadUrl(
   supabase: Supabase,
-  params: { orgId: string; contractId: string; fileName: string },
+  params: { orgId: string; fileName: string },
 ) {
-  const path = `${params.orgId}/${params.contractId}/${slugify(params.fileName)}`;
-
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUploadUrl(path);
-
-  if (error) return { ok: false as const, error: error.message };
-  return { ok: true as const, data: { path, token: data.token, signedUrl: data.signedUrl } };
+  return filesService.createUploadUrl(supabase, params);
 }
 
 export async function confirmUpload(
@@ -344,20 +321,27 @@ export async function confirmUpload(
     orgId: string;
     actorId: string;
     contractId: string;
+    fileId: string;
     path: string;
     fileName: string;
     size: number;
     mime: string;
   },
 ) {
+  const fileResult = await filesService.confirmUpload(supabase, {
+    id: params.fileId,
+    orgId: params.orgId,
+    actorId: params.actorId,
+    path: params.path,
+    name: params.fileName,
+    size: params.size,
+    mime: params.mime,
+  });
+  if (!fileResult.ok) return fileResult;
+
   const { data, error } = await supabase
     .from("contracts")
-    .update({
-      file_path: params.path,
-      file_name: params.fileName,
-      file_size: params.size,
-      file_mime: params.mime,
-    })
+    .update({ file_id: fileResult.data.id })
     .eq("id", params.contractId)
     .eq("org_id", params.orgId)
     .select("id, title")
@@ -384,25 +368,21 @@ export async function getSignedViewUrl(
 ): Promise<{ url: string; mime: string; fileName: string } | null> {
   const { data: contract, error: contractErr } = await supabase
     .from("contracts")
-    .select("file_path, file_name, file_mime")
+    .select("file_id")
     .eq("id", params.contractId)
     .eq("org_id", params.orgId)
     .maybeSingle();
 
   if (contractErr) throw contractErr;
-  if (!contract?.file_path) return null;
+  if (!contract?.file_id) return null;
 
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(contract.file_path, 60);
+  const file = await filesService.getSignedUrl(supabase, {
+    orgId: params.orgId,
+    fileId: contract.file_id,
+  });
+  if (!file) return null;
 
-  if (error) throw error;
-
-  return {
-    url: data.signedUrl,
-    mime: contract.file_mime ?? "application/octet-stream",
-    fileName: contract.file_name ?? "arquivo",
-  };
+  return { url: file.url, mime: file.mime, fileName: file.name };
 }
 
 /** Contratos vinculados a uma proposta (aba "Contratos vinculados" do dialog de detalhe do deal, §7.6). */

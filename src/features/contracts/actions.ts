@@ -119,7 +119,6 @@ const ALLOWED_MIME_TYPES = [
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
 export async function createContractUploadUrl(
-  contractId: string,
   fileName: string,
   mime: string,
   size: number,
@@ -136,7 +135,6 @@ export async function createContractUploadUrl(
   const { supabase, orgId } = await requireOrg();
   const result = await contractsService.createUploadUrl(supabase, {
     orgId,
-    contractId,
     fileName,
   });
 
@@ -149,6 +147,7 @@ export async function createContractUploadUrl(
 
 export async function confirmContractUpload(
   contractId: string,
+  fileId: string,
   path: string,
   fileName: string,
   size: number,
@@ -159,6 +158,7 @@ export async function confirmContractUpload(
     orgId,
     actorId: user.id,
     contractId,
+    fileId,
     path,
     fileName,
     size,

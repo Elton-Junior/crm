@@ -235,6 +235,70 @@ export type Database = {
           },
         ]
       }
+      comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          mentions: string[]
+          org_id: string
+          parent_id: string | null
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          mentions?: string[]
+          org_id: string
+          parent_id?: string | null
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          mentions?: string[]
+          org_id?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           client_id: string | null
@@ -245,10 +309,7 @@ export type Database = {
           deal_id: string | null
           deleted_at: string | null
           end_date: string | null
-          file_mime: string | null
-          file_name: string | null
-          file_path: string | null
-          file_size: number | null
+          file_id: string | null
           id: string
           notes: string | null
           org_id: string
@@ -270,10 +331,7 @@ export type Database = {
           deal_id?: string | null
           deleted_at?: string | null
           end_date?: string | null
-          file_mime?: string | null
-          file_name?: string | null
-          file_path?: string | null
-          file_size?: number | null
+          file_id?: string | null
           id?: string
           notes?: string | null
           org_id: string
@@ -295,10 +353,7 @@ export type Database = {
           deal_id?: string | null
           deleted_at?: string | null
           end_date?: string | null
-          file_mime?: string | null
-          file_name?: string | null
-          file_path?: string | null
-          file_size?: number | null
+          file_id?: string | null
           id?: string
           notes?: string | null
           org_id?: string
@@ -331,6 +386,13 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
             referencedColumns: ["id"]
           },
           {
@@ -592,6 +654,164 @@ export type Database = {
           },
         ]
       }
+      file_links: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          file_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          file_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          file_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_links_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      files: {
+        Row: {
+          checksum: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          folder_id: string | null
+          id: string
+          mime: string
+          name: string
+          org_id: string
+          replaces_id: string | null
+          size: number
+          storage_path: string
+          version: number
+        }
+        Insert: {
+          checksum?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          folder_id?: string | null
+          id?: string
+          mime: string
+          name: string
+          org_id: string
+          replaces_id?: string | null
+          size: number
+          storage_path: string
+          version?: number
+        }
+        Update: {
+          checksum?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          folder_id?: string | null
+          id?: string
+          mime?: string
+          name?: string
+          org_id?: string
+          replaces_id?: string | null
+          size?: number
+          storage_path?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_replaces_id_fkey"
+            columns: ["replaces_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          name: string
+          org_id: string
+          parent_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name: string
+          org_id: string
+          parent_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folders_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -624,6 +844,73 @@ export type Database = {
           },
           {
             foreignKeyName: "memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          body: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          org_id: string
+          read_at: string | null
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          org_id: string
+          read_at?: string | null
+          title: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          org_id?: string
+          read_at?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -780,6 +1067,438 @@ export type Database = {
         }
         Relationships: []
       }
+      project_members: {
+        Row: {
+          project_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          project_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          project_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          client_id: string | null
+          color: string
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          deleted_at: string | null
+          description: string | null
+          due_on: string | null
+          id: string
+          name: string
+          org_id: string
+          owner_id: string | null
+          position: string
+          starts_on: string | null
+          status: Database["public"]["Enums"]["project_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_on?: string | null
+          id?: string
+          name: string
+          org_id: string
+          owner_id?: string | null
+          position: string
+          starts_on?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_on?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          owner_id?: string | null
+          position?: string
+          starts_on?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_checklist_items: {
+        Row: {
+          created_at: string
+          done: boolean
+          id: string
+          position: string
+          task_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          position: string
+          task_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          position?: string
+          task_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_checklist_items_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_columns: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_done: boolean
+          name: string
+          org_id: string
+          position: string
+          project_id: string
+          wip_limit: number | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_done?: boolean
+          name: string
+          org_id: string
+          position: string
+          project_id: string
+          wip_limit?: number | null
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_done?: boolean
+          name?: string
+          org_id?: string
+          position?: string
+          project_id?: string
+          wip_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_columns_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_columns_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_watchers: {
+        Row: {
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_watchers_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_watchers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assignee_id: string | null
+          client_id: string | null
+          column_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          deleted_at: string | null
+          description: string | null
+          due_on: string | null
+          estimate_min: number | null
+          id: string
+          org_id: string
+          parent_id: string | null
+          position: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          spent_min: number
+          starts_on: string | null
+          status: Database["public"]["Enums"]["task_status"]
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          client_id?: string | null
+          column_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_on?: string | null
+          estimate_min?: number | null
+          id?: string
+          org_id: string
+          parent_id?: string | null
+          position: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          spent_min?: number
+          starts_on?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          client_id?: string | null
+          column_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_on?: string | null
+          estimate_min?: number | null
+          id?: string
+          org_id?: string
+          parent_id?: string | null
+          position?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id?: string
+          spent_min?: number
+          starts_on?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "task_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entries: {
+        Row: {
+          created_at: string
+          id: string
+          logged_on: string
+          minutes: number
+          note: string | null
+          org_id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logged_on?: string
+          minutes: number
+          note?: string | null
+          org_id: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logged_on?: string
+          minutes?: number
+          note?: string | null
+          org_id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -823,6 +1542,22 @@ export type Database = {
       deal_status: "open" | "won" | "lost"
       event_kind: "meeting" | "call" | "task" | "deadline" | "other"
       member_role: "owner" | "admin" | "member" | "viewer"
+      notification_kind:
+        | "mention"
+        | "task_assigned"
+        | "task_due_soon"
+        | "task_completed"
+        | "deal_moved"
+        | "deal_won"
+        | "deal_lost"
+        | "deal_stale"
+        | "contract_expiring"
+        | "event_reminder"
+        | "message_received"
+        | "automation_failed"
+      project_status: "active" | "on_hold" | "done" | "archived"
+      task_priority: "low" | "normal" | "high" | "urgent"
+      task_status: "todo" | "in_progress" | "review" | "done" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -975,6 +1710,23 @@ export const Constants = {
       deal_status: ["open", "won", "lost"],
       event_kind: ["meeting", "call", "task", "deadline", "other"],
       member_role: ["owner", "admin", "member", "viewer"],
+      notification_kind: [
+        "mention",
+        "task_assigned",
+        "task_due_soon",
+        "task_completed",
+        "deal_moved",
+        "deal_won",
+        "deal_lost",
+        "deal_stale",
+        "contract_expiring",
+        "event_reminder",
+        "message_received",
+        "automation_failed",
+      ],
+      project_status: ["active", "on_hold", "done", "archived"],
+      task_priority: ["low", "normal", "high", "urgent"],
+      task_status: ["todo", "in_progress", "review", "done", "cancelled"],
     },
   },
 } as const
