@@ -2,7 +2,13 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-import { loginSchema, passwordLoginSchema, signUpSchema } from "./schema";
+import {
+  loginSchema,
+  passwordLoginSchema,
+  requestPasswordResetSchema,
+  signUpSchema,
+  updatePasswordSchema,
+} from "./schema";
 
 function checkDomain(email: string): string | null {
   const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN?.trim();
@@ -120,4 +126,51 @@ export async function signUpWithPassword(input: unknown, next?: string) {
   }
 
   return { ok: true as const, data: { confirmed: false as const, redirectTo: null } };
+}
+
+export async function requestPasswordReset(input: unknown) {
+  const parsed = requestPasswordResetSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, errors: parsed.error.flatten().fieldErrors };
+  }
+
+  const domainError = checkDomain(parsed.data.email);
+  if (domainError) {
+    return { ok: false as const, errors: { email: [domainError] } };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent("/redefinir-senha")}`,
+  });
+
+  // Supabase não informa se o e-mail existe (evita enumeração) — sempre
+  // devolvemos sucesso, exceto em erro real (ex.: rate limit).
+  if (error && error.message.toLowerCase().includes("rate limit")) {
+    return {
+      ok: false as const,
+      errors: { _form: ["Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente de novo."] },
+    };
+  }
+
+  return { ok: true as const, data: null };
+}
+
+export async function updatePassword(input: unknown) {
+  const parsed = updatePasswordSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, errors: parsed.error.flatten().fieldErrors };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+
+  if (error) {
+    return {
+      ok: false as const,
+      errors: { _form: ["Não foi possível atualizar a senha. Peça um novo link e tente de novo."] },
+    };
+  }
+
+  return { ok: true as const, data: null };
 }

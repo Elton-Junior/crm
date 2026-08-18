@@ -3,13 +3,8 @@
 import { Suspense, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "next/navigation";
-import {
-  useForm,
-  type ControllerRenderProps,
-  type FieldPath,
-  type FieldValues,
-} from "react-hook-form";
-import { EyeIcon, EyeOffIcon, MailIcon } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { MailIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/layout/Logo";
@@ -25,68 +20,108 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  requestPasswordReset,
   signInWithMagicLink,
   signInWithPassword,
   signUpWithPassword,
 } from "@/features/auth/actions";
 import { firstErrorMessage } from "@/lib/action-errors";
 import { LoginHero } from "@/features/auth/components/LoginHero";
+import { PasswordField } from "@/features/auth/components/PasswordField";
 import {
   loginSchema,
   passwordLoginSchema,
+  requestPasswordResetSchema,
   signUpSchema,
   type LoginInput,
   type PasswordLoginInput,
+  type RequestPasswordResetInput,
   type SignUpInput,
 } from "@/features/auth/schema";
 
 const MAGIC_LINK_COOLDOWN_SECONDS = 60;
 
-function PasswordField<
-  TFieldValues extends FieldValues,
-  TName extends FieldPath<TFieldValues>,
->({
-  field,
-  label,
-  autoComplete,
-  disabled,
-}: {
-  field: ControllerRenderProps<TFieldValues, TName>;
-  label: string;
-  autoComplete: string;
-  disabled?: boolean;
-}) {
-  const [visible, setVisible] = useState(false);
-  return (
-    <FormItem>
-      <FormLabel>{label}</FormLabel>
-      <FormControl>
-        <div className="relative">
-          <Input
-            type={visible ? "text" : "password"}
-            autoComplete={autoComplete}
-            disabled={disabled}
-            className="pr-9"
-            {...field}
-          />
-          <button
-            type="button"
-            onClick={() => setVisible((v) => !v)}
-            className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
-            tabIndex={-1}
-          >
-            {visible ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
-          </button>
+function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
+  const [isPending, startTransition] = useTransition();
+  const [sent, setSent] = useState(false);
+  const form = useForm<RequestPasswordResetInput>({
+    resolver: zodResolver(requestPasswordResetSchema),
+    defaultValues: { email: "" },
+  });
+
+  function onSubmit(values: RequestPasswordResetInput) {
+    startTransition(async () => {
+      const result = await requestPasswordReset(values);
+      if (!result.ok) {
+        toast.error(firstErrorMessage(result.errors, "Não foi possível enviar o e-mail."));
+        return;
+      }
+      setSent(true);
+    });
+  }
+
+  if (sent) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-lg border bg-muted/40 p-6 text-center">
+        <MailIcon className="size-6 text-primary" />
+        <div>
+          <p className="text-sm font-medium">Confira seu e-mail</p>
+          <p className="text-sm text-muted-foreground">
+            Se {form.getValues("email")} tiver uma conta, enviamos um link para
+            criar uma nova senha.
+          </p>
         </div>
-      </FormControl>
-      <FormMessage />
-    </FormItem>
+        <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+          Voltar para o login
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">Redefinir senha</h2>
+          <p className="text-sm text-muted-foreground">
+            Digite seu e-mail e enviaremos um link para criar uma nova senha.
+          </p>
+        </div>
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>E-mail</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="voce@suaempresa.com.br"
+                  autoComplete="email"
+                  disabled={isPending}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Enviando..." : "Enviar link"}
+        </Button>
+        <Button type="button" variant="ghost" className="w-full" onClick={onBack}>
+          Voltar para o login
+        </Button>
+      </form>
+    </Form>
   );
 }
 
 function SignInForm({ next }: { next?: string }) {
   const [isPending, startTransition] = useTransition();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const form = useForm<PasswordLoginInput>({
     resolver: zodResolver(passwordLoginSchema),
     defaultValues: { email: "", password: "" },
@@ -107,6 +142,10 @@ function SignInForm({ next }: { next?: string }) {
       toast.success("Login realizado.");
       window.location.href = result.data.redirectTo;
     });
+  }
+
+  if (showForgotPassword) {
+    return <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />;
   }
 
   return (
@@ -144,6 +183,16 @@ function SignInForm({ next }: { next?: string }) {
             />
           )}
         />
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowForgotPassword(true)}
+            className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+          >
+            Esqueceu a senha?
+          </button>
+        </div>
 
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? "Entrando..." : "Entrar"}

@@ -25,3 +25,21 @@ export const signUpSchema = z
   });
 
 export type SignUpInput = z.infer<typeof signUpSchema>;
+
+export const requestPasswordResetSchema = z.object({
+  email: z.string().min(1, "Informe seu e-mail").email("E-mail inválido"),
+});
+
+export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>;
+
+export const updatePasswordSchema = z
+  .object({
+    password: z.string().min(8, "Mínimo de 8 caracteres"),
+    confirmPassword: z.string().min(1, "Confirme sua senha"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem.",
+    path: ["confirmPassword"],
+  });
+
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
