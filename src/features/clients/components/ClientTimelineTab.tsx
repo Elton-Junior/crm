@@ -1,8 +1,11 @@
 import {
+  CheckCircle2Icon,
   ClipboardEditIcon,
   FileTextIcon,
+  FolderKanbanIcon,
   HistoryIcon,
   KanbanSquareIcon,
+  ListTodoIcon,
   StickyNoteIcon,
   TrophyIcon,
   UserPlusIcon,
@@ -28,6 +31,10 @@ const ACTIVITY_META: Record<ActivityKind, { label: string; icon: LucideIcon }> =
   contract_status_changed: { label: "Status do contrato alterado", icon: FileTextIcon },
   event_created: { label: "Evento criado", icon: HistoryIcon },
   note_added: { label: "Observação adicionada", icon: StickyNoteIcon },
+  project_created: { label: "Projeto criado", icon: FolderKanbanIcon },
+  task_created: { label: "Tarefa criada", icon: ListTodoIcon },
+  task_moved: { label: "Tarefa movida", icon: ListTodoIcon },
+  task_completed: { label: "Tarefa concluída", icon: CheckCircle2Icon },
 };
 
 function payloadAction(payload: unknown): string | null {

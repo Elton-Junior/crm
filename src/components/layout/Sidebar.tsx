@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   CalendarDays,
   FileText,
+  FolderKanban,
   KanbanSquare,
   LayoutDashboard,
+  ListTodo,
   Settings,
   Users,
 } from "lucide-react";
@@ -20,6 +22,8 @@ const NAV_ITEMS = [
   { href: "/propostas", label: "Propostas", icon: KanbanSquare },
   { href: "/contratos", label: "Contratos", icon: FileText },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/projetos", label: "Projetos", icon: FolderKanban },
+  { href: "/tarefas", label: "Minhas tarefas", icon: ListTodo },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 

@@ -109,6 +109,22 @@ export async function getSignedUrl(
   return { url: data.signedUrl, mime: file.mime, name: file.name };
 }
 
+/** Anexos de uma entidade via `file_links` (ex.: tarefa, item 28). */
+export async function listByEntity(
+  supabase: Supabase,
+  params: { entityType: string; entityId: string },
+): Promise<FileMeta[]> {
+  const { data, error } = await supabase
+    .from("file_links")
+    .select("file:files!inner(id, name, size, mime)")
+    .eq("entity_type", params.entityType)
+    .eq("entity_id", params.entityId)
+    .is("files.deleted_at", null);
+
+  if (error) throw error;
+  return (data ?? []).map((row) => row.file as unknown as FileMeta);
+}
+
 /** Vincula um arquivo a uma entidade via `file_links` — anexos polimórficos
  * (tarefa, mensagem, etc.). Contratos usam `contracts.file_id` direto (1:1),
  * não este vínculo. */

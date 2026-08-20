@@ -1530,6 +1530,10 @@ export type Database = {
         | "contract_status_changed"
         | "event_created"
         | "note_added"
+        | "project_created"
+        | "task_created"
+        | "task_moved"
+        | "task_completed"
       client_kind: "pf" | "pj"
       client_status: "lead" | "active" | "inactive" | "churned"
       contract_status:
@@ -1696,6 +1700,10 @@ export const Constants = {
         "contract_status_changed",
         "event_created",
         "note_added",
+        "project_created",
+        "task_created",
+        "task_moved",
+        "task_completed",
       ],
       client_kind: ["pf", "pj"],
       client_status: ["lead", "active", "inactive", "churned"],
