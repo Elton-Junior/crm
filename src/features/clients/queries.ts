@@ -8,6 +8,7 @@ import * as clientsService from "@/server/clients";
 import * as contractsService from "@/server/contracts";
 import * as dealsService from "@/server/deals";
 import * as eventsService from "@/server/events";
+import * as projectsService from "@/server/projects";
 
 import { clientListParamsSchema } from "./schema";
 
@@ -61,12 +62,13 @@ export async function getClientDetail(clientId: string) {
   const client = await clientsService.getById(supabase, orgId, clientId);
   if (!client) notFound();
 
-  const [deals, contracts, events, activities, members] = await Promise.all([
+  const [deals, contracts, events, activities, members, projects] = await Promise.all([
     dealsService.listByClient(supabase, orgId, clientId),
     contractsService.listByClient(supabase, orgId, clientId),
     eventsService.listByClient(supabase, orgId, clientId),
     activitiesService.listByClient(supabase, orgId, clientId),
     clientsService.listMembers(supabase, orgId),
+    projectsService.listByClient(supabase, orgId, clientId),
   ]);
 
   const now = new Date();
@@ -85,6 +87,7 @@ export async function getClientDetail(clientId: string) {
     client,
     deals,
     contracts,
+    projects,
     events: { upcoming: upcomingEvents, past: pastEvents },
     activities,
     members,

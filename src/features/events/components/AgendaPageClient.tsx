@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { TaskDetailDialog } from "@/features/tasks/components/TaskDetailDialog";
+
 import { AgendaCalendar } from "./AgendaCalendar";
 import {
   AgendaSidebar,
@@ -14,7 +16,8 @@ type Member = { id: string; full_name: string | null };
 
 type DialogState =
   | { mode: "create"; start: Date; end: Date; allDay: boolean }
-  | { mode: "edit"; eventId: string };
+  | { mode: "edit"; eventId: string }
+  | { mode: "task"; taskId: string; projectId: string };
 
 export function AgendaPageClient({
   members,
@@ -46,6 +49,9 @@ export function AgendaPageClient({
             setDialogState({ mode: "create", start, end: adjustedEnd, allDay });
           }}
           onClickEvent={(eventId) => setDialogState({ mode: "edit", eventId })}
+          onClickTaskDeadline={(taskId, projectId) =>
+            setDialogState({ mode: "task", taskId, projectId })
+          }
         />
       </div>
 
@@ -57,7 +63,7 @@ export function AgendaPageClient({
         onSelectEvent={(eventId) => setDialogState({ mode: "edit", eventId })}
       />
 
-      {dialogState ? (
+      {dialogState && dialogState.mode !== "task" ? (
         <EventFormDialog
           key={
             dialogState.mode === "edit"
@@ -77,6 +83,15 @@ export function AgendaPageClient({
           members={members}
         />
       ) : null}
+
+      <TaskDetailDialog
+        taskId={dialogState?.mode === "task" ? dialogState.taskId : null}
+        projectId={dialogState?.mode === "task" ? dialogState.projectId : ""}
+        members={members}
+        onOpenChange={(open) => {
+          if (!open) setDialogState(null);
+        }}
+      />
     </div>
   );
 }

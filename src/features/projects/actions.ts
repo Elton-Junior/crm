@@ -73,6 +73,25 @@ export async function getProject(projectId: string) {
   return { ok: true as const, data: project };
 }
 
+/** "Criar projeto a partir desta proposta" (§4.4, item 30) — chamado a partir do DealDetailDialog. */
+export async function createProjectFromDeal(dealId: string, name: string, clientId: string) {
+  const { supabase, user, orgId } = await requireOrg();
+  const result = await projectsService.createFromDeal(supabase, {
+    orgId,
+    actorId: user.id,
+    dealId,
+    name,
+    clientId: clientId || null,
+  });
+
+  if (!result.ok) {
+    return { ok: false as const, errors: { _form: [result.error] } };
+  }
+
+  revalidatePath("/projetos");
+  return { ok: true as const, data: result.data };
+}
+
 export async function deleteProject(projectId: string) {
   const { supabase, orgId } = await requireOrg();
   const result = await projectsService.softDelete(supabase, { orgId, projectId });

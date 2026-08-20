@@ -18,6 +18,12 @@ export async function getBoardData(projectId: string) {
   return tasksService.getBoard(supabase, orgId, projectId);
 }
 
+/** Prazos de tarefa para a Agenda (§4.4, item 30) — union all com events, feito no cliente pela AgendaCalendar. */
+export async function getTaskDeadlinesRange(from: string, to: string) {
+  const { supabase, orgId } = await requireOrg();
+  return tasksService.listDeadlinesInRange(supabase, orgId, from, to);
+}
+
 export async function moveTask(input: unknown) {
   const parsed = moveTaskSchema.safeParse(input);
   if (!parsed.success) {

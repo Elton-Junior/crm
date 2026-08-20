@@ -1,4 +1,8 @@
+import Link from "next/link";
+import { ListTodoIcon } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { ClientTimelineTab } from "@/features/clients/components/ClientTimelineTab";
 import {
   ExpiringContractsList,
@@ -25,6 +29,7 @@ export default async function DashboardPage({
     staleDeals,
     expiringContracts,
     recentActivities,
+    overdueTasksCount,
   } = await getDashboardData(resolvedSearchParams);
 
   return (
@@ -84,7 +89,7 @@ export default async function DashboardPage({
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5">
         <Card>
           <CardHeader>
             <CardTitle>Próximas reuniões</CardTitle>
@@ -107,6 +112,27 @@ export default async function DashboardPage({
           </CardHeader>
           <CardContent>
             <ExpiringContractsList contracts={expiringContracts} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Minhas tarefas atrasadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {overdueTasksCount === 0 ? (
+              <EmptyState
+                icon={ListTodoIcon}
+                title="Nenhuma tarefa atrasada"
+                description="Tarefas com prazo vencido aparecem aqui."
+              />
+            ) : (
+              <Link href="/tarefas" className="block hover:underline">
+                <p className="text-3xl font-semibold text-destructive">{overdueTasksCount}</p>
+                <p className="text-sm text-muted-foreground">
+                  {overdueTasksCount === 1 ? "tarefa atrasada" : "tarefas atrasadas"}
+                </p>
+              </Link>
+            )}
           </CardContent>
         </Card>
         <Card>

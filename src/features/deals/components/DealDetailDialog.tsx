@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
@@ -38,6 +39,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ClientContractsTab } from "@/features/clients/components/ClientContractsTab";
 import { ClientTimelineTab } from "@/features/clients/components/ClientTimelineTab";
 import { TagsInput } from "@/features/clients/components/TagsInput";
+import { createProjectFromDeal } from "@/features/projects/actions";
 import { firstErrorMessage } from "@/lib/action-errors";
 import type { ClientActivity } from "@/server/activities";
 import type { ClientContract } from "@/server/contracts";
@@ -67,7 +69,9 @@ export function DealDetailDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const qc = useQueryClient();
+  const router = useRouter();
   const moveDeal = useMoveDeal(pipelineId);
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
 
   // Sem estado `isLoading` separado — sincronizar isso via setState direto
   // no corpo do effect dispara a regra react-hooks/set-state-in-effect (ver
@@ -183,6 +187,23 @@ export function DealDetailDialog({
           setLostDialogOpen(false);
           onOpenChange(false);
         },
+      },
+    );
+  }
+
+  function handleCreateProject() {
+    if (!dealId) return;
+    setIsCreatingProject(true);
+    createProjectFromDeal(dealId, form.getValues("title"), form.getValues("clientId")).then(
+      (result) => {
+        setIsCreatingProject(false);
+        if (!result.ok) {
+          toast.error(firstErrorMessage(result.errors, "Não foi possível criar o projeto."));
+          return;
+        }
+        toast.success("Projeto criado.");
+        onOpenChange(false);
+        router.push(`/projetos/${result.data.id}`);
       },
     );
   }
@@ -376,6 +397,16 @@ export function DealDetailDialog({
                             disabled={moveDeal.isPending}
                           >
                             Marcar como ganha
+                          </Button>
+                        ) : null}
+                        {currentStage?.is_won ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleCreateProject}
+                            disabled={isCreatingProject}
+                          >
+                            {isCreatingProject ? "Criando projeto..." : "Criar projeto"}
                           </Button>
                         ) : null}
                       </div>

@@ -3,6 +3,7 @@ import "server-only";
 import { requireOrg } from "@/lib/auth";
 import * as activitiesService from "@/server/activities";
 import * as dashboardService from "@/server/dashboard";
+import * as tasksService from "@/server/tasks";
 
 import { dashboardParamsSchema, resolvePeriodRange } from "./schema";
 
@@ -27,7 +28,7 @@ export async function getDashboardData(rawParams: RawSearchParams) {
   const prevTo = new Date(from.getTime() - 1);
   const prevFrom = new Date(prevTo.getTime() - durationMs);
 
-  const { supabase, orgId } = await requireOrg();
+  const { supabase, user, orgId } = await requireOrg();
 
   const [
     summary,
@@ -37,6 +38,7 @@ export async function getDashboardData(rawParams: RawSearchParams) {
     staleDeals,
     expiringContracts,
     recentActivities,
+    overdueTasksCount,
   ] = await Promise.all([
     dashboardService.getSummary(supabase, orgId, from.toISOString(), to.toISOString()),
     dashboardService.getSummary(
@@ -50,6 +52,7 @@ export async function getDashboardData(rawParams: RawSearchParams) {
     dashboardService.getStaleDeals(supabase, orgId),
     dashboardService.getExpiringContracts(supabase, orgId),
     activitiesService.listRecent(supabase, orgId),
+    tasksService.countOverdue(supabase, orgId, user.id),
   ]);
 
   return {
@@ -62,5 +65,6 @@ export async function getDashboardData(rawParams: RawSearchParams) {
     staleDeals,
     expiringContracts,
     recentActivities,
+    overdueTasksCount,
   };
 }

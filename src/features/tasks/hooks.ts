@@ -6,7 +6,13 @@ import { toast } from "sonner";
 import { firstErrorMessage } from "@/lib/action-errors";
 import type { Board } from "@/server/tasks";
 
-import { createTask, getBoardData, moveColumn, moveTask } from "./actions";
+import {
+  createTask,
+  getBoardData,
+  getTaskDeadlinesRange,
+  moveColumn,
+  moveTask,
+} from "./actions";
 
 export function taskBoardKey(projectId: string) {
   return ["task-board", projectId] as const;
@@ -16,6 +22,14 @@ export function useTaskBoard(projectId: string) {
   return useQuery({
     queryKey: taskBoardKey(projectId),
     queryFn: () => getBoardData(projectId),
+  });
+}
+
+export function useTaskDeadlinesRange(from: string, to: string) {
+  return useQuery({
+    queryKey: ["task-deadlines", from, to] as const,
+    queryFn: () => getTaskDeadlinesRange(from, to),
+    enabled: Boolean(from && to),
   });
 }
 

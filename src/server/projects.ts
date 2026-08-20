@@ -128,6 +128,23 @@ const DEFAULT_COLUMNS: { name: string; color: string; isDone: boolean }[] = [
   { name: "Concluído", color: "#22c55e", isDone: true },
 ];
 
+async function seedDefaultColumns(supabase: Supabase, orgId: string, projectId: string) {
+  let columnPosition: string | null = null;
+  const columnRows = DEFAULT_COLUMNS.map((col) => {
+    columnPosition = generateKeyBetween(columnPosition, null);
+    return {
+      org_id: orgId,
+      project_id: projectId,
+      name: col.name,
+      color: col.color,
+      is_done: col.isDone,
+      position: columnPosition,
+    };
+  });
+  const { error } = await supabase.from("task_columns").insert(columnRows);
+  return error ? { ok: false as const, error: error.message } : { ok: true as const };
+}
+
 export async function create(
   supabase: Supabase,
   params: { orgId: string; actorId: string; input: ProjectInput },
@@ -154,20 +171,8 @@ export async function create(
 
   if (error) return { ok: false as const, error: error.message };
 
-  let columnPosition: string | null = null;
-  const columnRows = DEFAULT_COLUMNS.map((col) => {
-    columnPosition = generateKeyBetween(columnPosition, null);
-    return {
-      org_id: params.orgId,
-      project_id: data.id,
-      name: col.name,
-      color: col.color,
-      is_done: col.isDone,
-      position: columnPosition,
-    };
-  });
-  const { error: columnsErr } = await supabase.from("task_columns").insert(columnRows);
-  if (columnsErr) return { ok: false as const, error: columnsErr.message };
+  const columnsResult = await seedDefaultColumns(supabase, params.orgId, data.id);
+  if (!columnsResult.ok) return columnsResult;
 
   const memberIds = new Set(params.input.memberIds);
   if (params.input.ownerId) memberIds.add(params.input.ownerId);
@@ -298,6 +303,54 @@ export async function softDelete(
 
   if (error) return { ok: false as const, error: error.message };
   return { ok: true as const };
+}
+
+/**
+ * "Criar projeto a partir desta proposta" (§4.4, item 30) — atalho oferecido
+ * quando um deal é marcado como ganho. Só os campos essenciais (nome,
+ * cliente, proposta vinculada); o resto o usuário ajusta depois em Editar.
+ */
+export async function createFromDeal(
+  supabase: Supabase,
+  params: { orgId: string; actorId: string; dealId: string; name: string; clientId: string | null },
+) {
+  const position = generateKeyBetween(null, null);
+
+  const { data, error } = await supabase
+    .from("projects")
+    .insert({
+      org_id: params.orgId,
+      name: params.name,
+      client_id: params.clientId,
+      deal_id: params.dealId,
+      owner_id: params.actorId,
+      position,
+      created_by: params.actorId,
+    })
+    .select("id, name, client_id")
+    .single();
+
+  if (error) return { ok: false as const, error: error.message };
+
+  const columnsResult = await seedDefaultColumns(supabase, params.orgId, data.id);
+  if (!columnsResult.ok) return columnsResult;
+
+  const { error: memberErr } = await supabase
+    .from("project_members")
+    .insert({ project_id: data.id, user_id: params.actorId });
+  if (memberErr) return { ok: false as const, error: memberErr.message };
+
+  await activitiesService.log(supabase, {
+    orgId: params.orgId,
+    actorId: params.actorId,
+    kind: "project_created",
+    entityType: "project",
+    entityId: data.id,
+    clientId: data.client_id,
+    payload: { name: data.name },
+  });
+
+  return { ok: true as const, data };
 }
 
 /** Lista leve para o combobox "Projeto" (ex.: criar projeto a partir de proposta ganha, item 30). */
