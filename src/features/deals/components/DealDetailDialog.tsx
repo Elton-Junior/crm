@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { positionForIndex } from "@/components/kanban/ordering";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -44,7 +45,6 @@ import type { Board, PipelineStage } from "@/server/deals";
 
 import { getDealDetail, updateDeal } from "../actions";
 import { boardKey, useMoveDeal } from "../hooks";
-import { positionForIndex } from "../ordering";
 import { DEAL_FORM_DEFAULTS, dealFormSchema, type DealFormInput } from "../schema";
 import { ClientCombobox } from "./ClientCombobox";
 import { LostReasonDialog } from "./LostReasonDialog";

@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { PlusIcon } from "lucide-react";
 
+import { positionForIndex } from "@/components/kanban/ordering";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { BoardDeal } from "@/server/deals";
 
-import { positionForIndex } from "../ordering";
 import { useCreateDeal } from "../hooks";
 
 export function QuickAddDeal({

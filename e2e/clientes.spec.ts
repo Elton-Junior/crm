@@ -12,7 +12,9 @@ test("cadastrar cliente", async ({ page }) => {
   await page.getByRole("button", { name: "Cadastrar cliente" }).click();
 
   await page.waitForURL("**/clientes");
-  await expect(page.getByText(name)).toBeVisible();
+  // Duas visões (cards mobile + tabela desktop) ficam no DOM ao mesmo tempo,
+  // alternadas por CSS (item 21) — pega o primeiro link em vez de ambíguo.
+  await expect(page.getByRole("link", { name }).first()).toBeVisible();
 
   const supabase = serviceRoleClient();
   const { error } = await supabase.from("clients").delete().eq("name", name);
