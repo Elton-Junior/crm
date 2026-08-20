@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
+import { FileViewer } from "@/components/file-viewer/FileViewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClientTimelineTab } from "@/features/clients/components/ClientTimelineTab";
 import { ContractMetadataPanel } from "@/features/contracts/components/ContractMetadataPanel";
-import { ContractViewer } from "@/features/contracts/components/ContractViewer";
 import { getContractDetail } from "@/features/contracts/queries";
 
 export default async function ContratoDetalhePage({
@@ -28,7 +28,7 @@ export default async function ContratoDetalhePage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <ContractViewer file={file} />
+          <FileViewer file={file} />
 
           <Card>
             <CardHeader>

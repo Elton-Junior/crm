@@ -6,6 +6,7 @@ import {
   CalendarDays,
   FileText,
   FolderKanban,
+  HardDrive,
   KanbanSquare,
   LayoutDashboard,
   ListTodo,
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/projetos", label: "Projetos", icon: FolderKanban },
   { href: "/tarefas", label: "Minhas tarefas", icon: ListTodo },
+  { href: "/drive", label: "Drive", icon: HardDrive },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 

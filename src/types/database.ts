@@ -766,6 +766,7 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           id: string
+          is_private: boolean
           name: string
           org_id: string
           parent_id: string | null
@@ -775,6 +776,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           id?: string
+          is_private?: boolean
           name: string
           org_id: string
           parent_id?: string | null
@@ -784,6 +786,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           id?: string
+          is_private?: boolean
           name?: string
           org_id?: string
           parent_id?: string | null
@@ -1508,6 +1511,14 @@ export type Database = {
       dashboard_summary: {
         Args: { p_from: string; p_org: string; p_to: string }
         Returns: Json
+      }
+      folder_ancestors: {
+        Args: { p_folder: string }
+        Returns: {
+          depth: number
+          id: string
+          name: string
+        }[]
       }
       is_member: { Args: { p_org: string }; Returns: boolean }
       show_limit: { Args: never; Returns: number }

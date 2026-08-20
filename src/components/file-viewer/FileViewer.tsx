@@ -2,7 +2,12 @@ import { DownloadIcon, FileIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-export function ContractViewer({
+/**
+ * Preview genérico (item 33) — extraído de ContractViewer (contratos foi o
+ * primeiro consumidor). PDF em iframe, imagem inline, resto vira ícone +
+ * download. Reaproveitado pelo Drive (§5.4).
+ */
+export function FileViewer({
   file,
 }: {
   file: { url: string; mime: string; fileName: string } | null;
@@ -27,8 +32,8 @@ export function ContractViewer({
   }
 
   if (file.mime.startsWith("image/")) {
-    // eslint-disable-next-line @next/next/no-img-element -- signed URL de curta duração, sem sentido otimizar/cachear via next/image
     return (
+      // eslint-disable-next-line @next/next/no-img-element -- signed URL de curta duração, sem sentido otimizar/cachear via next/image
       <img
         src={file.url}
         alt={file.fileName}
